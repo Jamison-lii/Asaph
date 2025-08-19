@@ -69,11 +69,13 @@ const index = () => {
         </View>
         </TouchableOpacity>
 
-         <TouchableOpacity>
+          <TouchableOpacity>
          <View className='bg-[#F2E8E8] h-12 w-[318px] mt-4 rounded-lg'>
-            <Text className='text-black text-lg font-semibold text-center pt-3'>Sign Up</Text>
+        { user ?    <Text className='text-black text-lg font-semibold text-center pt-3'>Rate</Text> : 
+         <Text className='text-black text-lg font-semibold text-center pt-3'>Rate</Text>
+        }
         </View>
-        </TouchableOpacity>
+        </TouchableOpacity> 
 
       </View>
     </View>
