@@ -4,7 +4,7 @@
     "slug": "Asaph",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/Revived.png",
     "scheme": "asaph",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,10 +13,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "",
+        "backgroundColor": ""
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.jamison_lii.Asaph"
     },
     "web": {
       "bundler": "metro",
@@ -28,8 +29,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/images/Revived.png",
+          "imageWidth": 400,
+          "imageHeight": 400,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
