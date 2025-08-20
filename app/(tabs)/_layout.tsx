@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { Home, Scan, Bookmark, User } from "lucide-react-native";
+import { Home, Scan, Bookmark, User, Keyboard } from "lucide-react-native";
 import React from "react";
 import { Tabs } from "expo-router";
 import "../../global.css";
@@ -28,11 +28,11 @@ const _layout = () => {
         }}
       />
       <Tabs.Screen
-        name="saved"
+        name="type"
         options={{
-          title: "Saved",
+          title: "Type",
           tabBarIcon: ({ color, size }) => (
-            <Bookmark size={size} color={color} />
+            <Keyboard size={size} color={color} />
           ),
         }}
       />
