@@ -15,11 +15,11 @@ const index = () => {
     };
 
     const handleTypeNavigate = () => {
-        router.push('/(tabs)/profile');
+        router.push('/(tabs)/type');
     }
 
      const handleSavedNavigate = () => {
-        router.push('/(tabs)/saved');
+        router.push('/Pages/saved'); 
      }
 
      const getUserData = async () => {
