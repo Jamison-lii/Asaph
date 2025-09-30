@@ -33,10 +33,14 @@ const Profile = () => {
   }, []);
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('@user_data');
+  //  await AsyncStorage.removeItem('@user_data');
     setUser(null);
     router.replace('/auth/sign_up'); // or navigate to login screen
   };
+
+  const handleNavigate  = () => {
+    router.push('../Pages/saved');
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-[#FAF7FA] px-6 pt-10">
@@ -56,7 +60,7 @@ const Profile = () => {
         <Text className="text-white text-center text-lg font-semibold">Edit Profile</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity className="bg-[#B21A2B] py-3 rounded-lg mb-4">
+      <TouchableOpacity onPress={handleNavigate} className="bg-[#B21A2B] py-3 rounded-lg mb-4">
         <Text className="text-white text-center text-lg font-semibold">My Songs</Text>
       </TouchableOpacity>
 
