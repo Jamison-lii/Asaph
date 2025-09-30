@@ -1,54 +1,59 @@
-function parseSolfa(solfaLine:string) {
-  const result = [];
-  const bars = solfaLine.split("|");
+export const parseSongParts = (parts: { soprano: string; alto: string; tenor: string; bass: string }, key: string) => {
+  const result: Record<string, any[]> = { soprano: [], alto: [], tenor: [], bass: [] };
 
-  for (const bar of bars) {
-    const beats = bar.trim().split(":");
+  // default octave levels
+  const octaveMap: Record<string, number> = {
+    soprano: 3,
+    alto: 3,
+    tenor: 2,
+    bass: 1,
+  };
 
-    for (const beat of beats) {
-      if (!beat) continue;
+  // helper to parse a single solfa line
+  const parseLine = (line: string, part: string) => {
+    const notes: any[] = [];
+    if (!line) return notes;
 
-      if (beat.includes(".")) {
-        beat.split(".").forEach(n => result.push({ note: n.trim(), duration: 0.5 }));
-      } 
-      else if (beat.includes(",")) {
-        beat.split(",").forEach(n => result.push({ note: n.trim(), duration: 0.25 }));
-      } 
-      else if (beat.includes(";")) {
-        const [n1, n2] = beat.split(";");
-        result.push({ note: n1.trim(), duration: 0.25 });
-        result.push({ note: n2.trim(), duration: 0.75 });
-      } 
-      else {
-        result.push({ note: beat.trim(), duration: 1 });
+    const bars = line.split("|");
+    for (const bar of bars) {
+      const beats = bar.trim().split(":");
+      for (const beat of beats) {
+        if (!beat) continue;
+
+        const segments = beat.split(/[\.,;]/); // split on . , ;
+        segments.forEach((seg, idx) => {
+          let duration = 1;
+          const s = seg.trim();
+          if (!s) return;
+
+          if (beat.includes(".")) duration = 0.5;
+          else if (beat.includes(",")) duration = 0.25;
+          else if (beat.includes(";")) duration = idx === 0 ? 0.25 : 0.75;
+
+          // handle octave modifiers
+          let octave = octaveMap[part];
+          let note = s;
+
+          if (s.endsWith("'")) {
+            octave += 1;
+            note = s.slice(0, -1);
+          } else if (s.endsWith("~")) {
+            octave -= 1;
+            note = s.slice(0, -1);
+          }
+
+          notes.push({ note, octave, duration, key });
+        });
       }
     }
-  }
+
+    return notes;
+  };
+
+  result.soprano = parseLine(parts.soprano, "soprano");
+  result.alto = parseLine(parts.alto, "alto");
+  result.tenor = parseLine(parts.tenor, "tenor");
+  result.bass = parseLine(parts.bass, "bass");
 
   return result;
-}
-
-const parsed = parseSolfa("d:d.r:m.m:f;s: | l,f.s,f:m.m:d:r.t |");
-console.log(parsed);
-
-
-// Example output after parsing
-// const songData = [
-//   { note: "d", duration: 1 },
-//   { note: "d", duration: 0.5 },
-//   { note: "r", duration: 0.5 },
-//   { note: "m", duration: 0.5 },
-//   { note: "m", duration: 0.5 },
-//   { note: "f", duration: 0.25 },
-//   { note: "s", duration: 0.75 },
-//   { note: "l", duration: 0.25 },
-//   { note: "f", duration: 0.25 },
-//   { note: "s", duration: 0.25 },
-//   { note: "f", duration: 0.25 },
-//   { note: "m", duration: 0.5 },
-//   { note: "m", duration: 0.5 },
-//   { note: "d", duration: 1 },
-//   { note: "r", duration: 1 },
-//   { note: "t", duration: 1 }
-// ];
-
+};

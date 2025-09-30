@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { useNavigation } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { parseSongParts } from '../Utils/ParseSolfa'; // make sure this is exported correctly
 
 const TypeSolfaScreen = () => {
   const navigation = useNavigation();
@@ -13,19 +14,56 @@ const TypeSolfaScreen = () => {
   const [tenor, setTenor] = useState('');
   const [bass, setBass] = useState('');
 
-  // Modal state
+  // Modal state for saving song
   const [modalVisible, setModalVisible] = useState(false);
   const [songTitle, setSongTitle] = useState('');
+  const [key, setKey] = useState('C'); // default song key
 
-  const handleSaveSong = async () => {
-    if (!songTitle) return;
+  // Modal state for play preview key
+  const [keyModalVisible, setKeyModalVisible] = useState(false);
+  const [previewKey, setPreviewKey] = useState('C'); // key for preview
 
-    const song = {
-      title: songTitle,
-      parts: { soprano, alto, tenor, bass },
-    };
+  // Handle actual parsing and preview
+  const handlePlayPreview = (selectedKey: string) => {
+    if (!soprano && !alto && !tenor && !bass) {
+      Alert.alert('No input', 'Please enter solfa for at least one part to play a preview.');
+      return;
+    }
 
     try {
+      const parsedParts = parseSongParts({ soprano, alto, tenor, bass }, selectedKey);
+      console.log('Parsed song for preview:', parsedParts);
+      Alert.alert('Preview Ready', 'Check console for parsed notes.');
+      // TODO: Implement audio playback here using parsedParts
+    } catch (err) {
+      console.error('Parsing failed', err);
+      Alert.alert('Error', 'Could not parse solfa lines.');
+    }
+  };
+
+  // Play Preview button pressed -> show key modal
+  const playPreview = () => {
+    setPreviewKey(key); // default to current key
+    setKeyModalVisible(true);
+  };
+
+  // Save song
+  const handleSaveSong = async () => {
+    if (!songTitle) {
+      Alert.alert('Enter Title', 'Please enter a song title.');
+      return;
+    }
+
+    try {
+      const parsedParts = parseSongParts({ soprano, alto, tenor, bass }, key);
+
+      const song = {
+        title: songTitle,
+        key: key || 'C',
+        rawParts: { soprano, alto, tenor, bass },
+        parsedParts,
+      };
+
       const existing = await AsyncStorage.getItem('songs');
       const songs = existing ? JSON.parse(existing) : [];
       songs.push(song);
@@ -37,12 +75,13 @@ const TypeSolfaScreen = () => {
       navigation.goBack();
     } catch (error) {
       console.error('Save failed', error);
-      Alert.alert('❌ Error', 'Could not save song');
+      Alert.alert('❌ Error', 'Could not save song.');
     }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-[#FAF7FA]">
+      {/* Header */}
       <View className="flex-row items-center p-4 bg-[#B21A2B]">
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft color="white" size={28} />
@@ -54,7 +93,7 @@ const TypeSolfaScreen = () => {
         Enter solfa for each part:
       </Text>
 
-      <View className="mx-5 mt-3 gap-3">
+      <ScrollView className="mx-5 mt-3 gap-3">
         <TextInput
           className="bg-white rounded-md shadow p-3 text-lg text-gray-900"
           placeholder="Soprano line..."
@@ -83,10 +122,14 @@ const TypeSolfaScreen = () => {
           value={bass}
           onChangeText={setBass}
         />
-      </View>
+      </ScrollView>
 
+      {/* Buttons */}
       <View className="mt-6 items-center">
-        <TouchableOpacity className="bg-[#B21A2B] w-[318px] h-12 rounded-lg justify-center mb-3">
+        <TouchableOpacity
+          onPress={playPreview}
+          className="bg-[#B21A2B] w-[318px] h-12 rounded-lg justify-center mb-3"
+        >
           <Text className="text-white text-lg font-semibold text-center">▶ Play Preview</Text>
         </TouchableOpacity>
 
@@ -98,7 +141,7 @@ const TypeSolfaScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Custom Modal for song title */}
+      {/* Modal for entering song title */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -114,14 +157,61 @@ const TypeSolfaScreen = () => {
               value={songTitle}
               onChangeText={setSongTitle}
             />
+
+            <Text className="text-lg font-semibold mb-3">Enter the key for the song:</Text>
+            <TextInput
+              className="border border-gray-300 rounded-md p-2 mb-4"
+              placeholder="Key (e.g., C, G, F#)"
+              value={key}
+              onChangeText={setKey}
+            />
+
             <TouchableOpacity
               onPress={handleSaveSong}
               className="bg-[#B21A2B] p-3 rounded-md mb-2"
             >
               <Text className="text-white text-center font-semibold">Save</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
+              className="bg-gray-300 p-3 rounded-md"
+            >
+              <Text className="text-black text-center font-semibold">Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal for preview key */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={keyModalVisible}
+        onRequestClose={() => setKeyModalVisible(false)}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50">
+          <View className="bg-white p-6 rounded-lg w-[300px]">
+            <Text className="text-lg font-semibold mb-3">Enter the key for this preview:</Text>
+            <TextInput
+              className="border border-gray-300 rounded-md p-2 mb-4"
+              placeholder="Key (e.g., C, G, F#)"
+              value={previewKey}
+              onChangeText={setPreviewKey}
+            />
+
+            <TouchableOpacity
+              onPress={() => {
+                setKeyModalVisible(false);
+                handlePlayPreview(previewKey);
+              }}
+              className="bg-[#B21A2B] p-3 rounded-md mb-2"
+            >
+              <Text className="text-white text-center font-semibold">OK</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setKeyModalVisible(false)}
               className="bg-gray-300 p-3 rounded-md"
             >
               <Text className="text-black text-center font-semibold">Cancel</Text>
